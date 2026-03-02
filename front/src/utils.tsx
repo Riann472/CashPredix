@@ -1,10 +1,27 @@
-import { UserProfile } from "./types";
+import { UserProfile } from "./types/types";
+
+export function getMonthName() {
+    const now = new Date();
+    return now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+}
 
 export function getMonthDayQtd(date: Date = new Date()): number {
     const year = date.getFullYear();
     const month = date.getMonth();
     return new Date(year, month + 1, 0).getDate();
 }
+
+export const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+    }).format(value);
+};
+
+export const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+};
 
 export function getExpenditureAverage(user: UserProfile, monthly: boolean = false): number {
     if (!user.transactions || user.transactions.length === 0) return 0;

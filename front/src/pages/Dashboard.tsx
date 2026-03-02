@@ -1,120 +1,26 @@
+import axios from 'axios'
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Calendar, Receipt } from 'lucide-react';
-import { useMemo } from 'react';
-import { FinantialData, Transaction, UserProfile } from '../types';
+import {  UserProfile, TransactionsSummary } from '../types/types';
 import { getExpenditureAverage } from '../utils';
+import { getMonthName, formatCurrency, formatDate } from '../utils'
 
-const transactions: Transaction[] = [{
-  id: '1',
-  userId: 1,
-  amount: 132,
-  category: "sla",
-  date: "2026-01-28",
-  description: "Casa",
-  type: "income",
-}, {
-  id: '1',
-  userId: 1,
-  amount: 132,
-  category: "sla",
-  date: "2026-01-27",
-  description: "Casa",
-  type: "income"
-},
- {
-  id: '1',
-  userId: 1,
-  amount: 14,
-  category: "sla",
-  date: "2026-01-28",
-  description: "Casa",
-  type: "expense"
-},
-{
-  id: '1',
-  userId: 1,
-  amount: 14,
-  category: "sla",
-  date: "2026-01-28",
-  description: "Casa",
-  type: "expense"
-},
-{
-  id: '1',
-  userId: 1,
-  amount: 600,
-  category: "sla",
-  date: "2026-01-28",
-  description: "Casa",
-  type: "expense"
-},
-{
-  id: '1',
-  userId: 1,
-  amount: 250,
-  category: "sla",
-  date: "2026-02-27",
-  description: "Casa",
-  type: "expense"
-}]
-
-const user: UserProfile = {
-  id: 1,
-  name: 'Riann',
-  email: 'rianncarvalhomota472@gmail.com',
-  transactions
-};
-
-const finantialData: FinantialData = {
-  userId: 1,
-  salary: null,
-  extraIncome: null,
-  extraIncomeType: null,
-  balance: null,
-  fixedExpenses: null
-}
-
+const userId = 1
 
 export default function Dashboard() {
-  const monthName = useMemo(() => {
-    const now = new Date();
-    return now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-  }, []);
-
-  function getUserTransactionsSum(transactions: Transaction[], type: "income" | "expense") {
-    const filtered = transactions.filter(t => t.type == type)
-    let sum = 0
-
-    filtered.forEach(t => {
-      sum += t.amount
-    })
-    return sum
-  }
-
-  const { income, expenses } = { income: getUserTransactionsSum(transactions, "income"), expenses: getUserTransactionsSum(transactions, "expense") };
-
-  const recentTransactions: Transaction[] = user.transactions ? user.transactions : []
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-  };
+  const { data: transactionsData } = useQuery<TransactionsSummary>({ queryKey: ['transactionsSummary'], queryFn: () => axios.get(`${import.meta.env.VITE_API_URL}/transactions/summary/${userId}`).then(res => res.data) })
+  const { data: user } = useQuery<UserProfile>({ queryKey: ['userProfile'], queryFn: () => axios.get(`${import.meta.env.VITE_API_URL}/user/${userId}`).then(res => res.data) })
+  const { income, expenses, transactions } = transactionsData || { income: 0, expenses: 0, transactions: [] }
 
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
       <div>
-        <h2 className="text-2xl font-bold text-foreground">Olá, {user.name}!</h2>
+        <h2 className="text-2xl font-bold text-foreground">Olá, {user?.name}!</h2>
         <p className="text-muted-foreground flex items-center gap-2 mt-1">
           <Calendar className="w-4 h-4" />
-          {monthName}
+          {getMonthName()}
         </p>
       </div>
 
@@ -130,7 +36,7 @@ export default function Dashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(income)}</div>
             <p className="text-xs text-emerald-50 mt-1">
-              Salário: {finantialData.salary ? formatCurrency(finantialData.salary) : "Não informado"}
+              Salário: {user?.financialData?.salary ? formatCurrency(user.financialData.salary) : "Não informado"}
             </p>
           </CardContent>
         </Card>
@@ -158,9 +64,9 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(finantialData.balance ? finantialData.balance : income - expenses)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(user?.financialData?.balance ? user.financialData.balance : income - expenses)}</div>
             <p className="text-xs text-white/90 mt-1">
-              {finantialData.balance ? finantialData.balance : 0 >= 0 ? 'Saldo positivo' : 'Saldo negativo'}
+              {user?.financialData?.balance ? user.financialData.balance : 0 >= 0 ? 'Saldo positivo' : 'Saldo negativo'}
             </p>
           </CardContent>
         </Card>
@@ -173,7 +79,7 @@ export default function Dashboard() {
           <CardDescription>Últimas movimentações financeiras</CardDescription>
         </CardHeader>
         <CardContent>
-          {recentTransactions.length === 0 ? (
+          {transactions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Receipt className="w-12 h-12 mx-auto mb-2 text-muted-foreground/50" />
               <p>Nenhuma transação registrada ainda</p>
@@ -183,7 +89,7 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="space-y-3">
-              {recentTransactions.map((transaction) => (
+              {transactions.map((transaction) => (
                 <div
                   key={transaction.id}
                   className="flex items-center justify-between p-3 bg-muted rounded-lg"
@@ -202,7 +108,7 @@ export default function Dashboard() {
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-foreground">{transaction.description}</p>
+                      <p className="font-medium text-foreground">{transaction.description || "Sem descrição"}</p>
                       <p className="text-sm text-muted-foreground">
                         {transaction.category} • {formatDate(transaction.date)}
                       </p>
@@ -222,7 +128,7 @@ export default function Dashboard() {
       </Card>
 
       {/* Summary Stats */}
-      {user.transactions && user.transactions.length > 0 && (
+      {user?.transactions && user.transactions.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card>
             <CardHeader className="pb-3">
@@ -265,7 +171,6 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className="pb-3">
               <CardDescription>Média de Gastos Mensais (Últimos 6 meses)</CardDescription>

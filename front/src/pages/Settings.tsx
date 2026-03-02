@@ -4,49 +4,21 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { User, Mail, DollarSign, Save } from 'lucide-react';
-import { FinantialData, Transaction, UserProfile } from '../types';
+import { UserProfile } from '../types/types';
+import axios from 'axios';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
-const transactions: Transaction[] = [{
-    id: '1',
-    userId: 1,
-    amount: 132,
-    category: "sla",
-    date: "23/02/2025",
-    description: "Casa",
-    type: "income",
-  }, {
-    id: '1',
-    userId: 1,
-    amount: 132,
-    category: "sla",
-    date: "23/02/2025",
-    description: "Casa",
-    type: "income"
-  }]
+const userId = 1
 
-const user: UserProfile = {
-  id: 1,
-  name: 'Riann',
-  email: 'rianncarvalhomota472@gmail.com',
-  transactions
-};
-  
-const finantialData: FinantialData = {
-  userId: 1,
-  salary: 3000,
-  extraIncome: 140,
-  extraIncomeType: "weekly",
-  balance: null
-}
 export default function Settings() {
-  const [formData, setFormData] = useState({
-    name: user.name,
-    email: user.email,
-    monthlySalary: finantialData.salary ? finantialData.salary.toString() : 0,
-  });
+  const { data: user } = useQuery<UserProfile>({ queryKey: ['userProfile'], queryFn: () => axios.get(`${import.meta.env.VITE_API_URL}/user/${userId}`).then(res => res.data) })
+  const { mutate: updateUser } = useMutation<UserProfile, Error, Partial<UserProfile>>({ mutationKey: ['updateUser'], mutationFn: (data) => axios.patch(`${import.meta.env.VITE_API_URL}/user/${userId}`, data).then(res => res.data) })
+
+  const [formData, setFormData] = useState<Partial<UserProfile>>({});
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    updateUser(formData);
   };
 
   const formatCurrency = (value: number) => {
@@ -79,7 +51,7 @@ export default function Settings() {
               </Label>
               <Input
                 id="name"
-                value={formData.name}
+                defaultValue={user?.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Seu nome completo"
                 required
@@ -94,7 +66,7 @@ export default function Settings() {
               <Input
                 id="email"
                 type="email"
-                value={formData.email}
+                defaultValue={user?.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="seu@email.com"
                 required
@@ -111,8 +83,11 @@ export default function Settings() {
                 type="number"
                 step="0.01"
                 min="0"
-                value={formData.monthlySalary}
-                onChange={(e) => setFormData({ ...formData, monthlySalary: e.target.value })}
+                defaultValue={user?.financialData?.salary}
+                onChange={(e) => {
+                  setFormData({ ...formData, financialData: { ...formData.financialData, salary: parseFloat(e.target.value) || 0 } })
+                  console.log(formData)
+                }}
                 placeholder="0.00"
               />
               <p className="text-sm text-muted-foreground">
@@ -134,7 +109,7 @@ export default function Settings() {
           <CardTitle>Resumo das Informações</CardTitle>
           <CardDescription>Seus dados atuais</CardDescription>
         </CardHeader>
-          <CardContent className="space-y-4">
+        <CardContent className="space-y-4">
           <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
@@ -142,7 +117,7 @@ export default function Settings() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Nome</p>
-                <p className="font-medium text-foreground">{user.name}</p>
+                <p className="font-medium text-foreground">{user?.name}</p>
               </div>
             </div>
           </div>
@@ -154,7 +129,7 @@ export default function Settings() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">E-mail</p>
-                <p className="font-medium text-foreground">{user.email}</p>
+                <p className="font-medium text-foreground">{user?.email}</p>
               </div>
             </div>
           </div>
@@ -166,7 +141,7 @@ export default function Settings() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Salário Mensal</p>
-                <p className="font-medium text-foreground">{finantialData.salary ? formatCurrency(finantialData?.salary): "Não informado"}</p>
+                <p className="font-medium text-foreground">{user?.financialData?.salary ? formatCurrency(user.financialData.salary) : "Não informado"}</p>
               </div>
             </div>
           </div>

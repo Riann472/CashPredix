@@ -6,7 +6,10 @@ import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Plus, TrendingUp, TrendingDown, Trash2, Filter } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import { Transaction } from '../types';
+import { Transaction } from '../types/types';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { formatCurrency, formatDate } from '../utils';
 
 const incomeCategories = [
   'Freelance',
@@ -29,64 +32,31 @@ const expenseCategories = [
   'Outros',
 ];
 
-const transactions: Transaction[] = [{
-  id: '1',
-  userId: 1,
-  amount: 132,
-  category: "sla",
-  date: "2026-02-28",
-  description: "Casa",
-  type: "income",
-}, {
-  id: '1',
-  userId: 1,
-  amount: 132,
-  category: "sla",
-  date: "2026-02-27",
-  description: "Casa",
-  type: "income"
-},
- {
-  id: '1',
-  userId: 1,
-  amount: 14,
-  category: "sla",
-  date: "2026-02-28",
-  description: "Casa",
-  type: "expense"
-}]
-
+const userId = 1
 
 export default function Transactions() {
   const [isOpen, setIsOpen] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
-  
+
+  const { data: transactions } = useQuery<Transaction[]>({ queryKey: ['transactions'], queryFn: () => axios.get(`${import.meta.env.VITE_API_URL}/transactions/${userId}`).then(res => res.data) })
+  const { mutate: addTransaction } = useMutation({ mutationKey: ['addTransaction'], mutationFn: (data: Omit<Transaction, 'id'>) => axios.post(`${import.meta.env.VITE_API_URL}/transactions`, { ...data, userId }).then(res => res.data) })
+
   const [formData, setFormData] = useState({
+    userId,
     type: 'expense' as 'income' | 'expense',
     category: '',
     description: '',
-    amount: '',
-    date: new Date().toISOString().split('T')[0],
+    amount: 0,
+    date: new Date().toISOString(),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('pt-BR');
+    addTransaction(formData);
   };
 
   const categories = formData.type === 'income' ? incomeCategories : expenseCategories;
-  const filteredTransactions = transactions
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -95,7 +65,7 @@ export default function Transactions() {
           <h2 className="text-2xl font-bold text-foreground">Transações</h2>
           <p className="text-muted-foreground">Gerencie suas receitas e despesas</p>
         </div>
-        
+
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button className="bg-emerald-600 hover:bg-emerald-700">
@@ -110,7 +80,7 @@ export default function Transactions() {
                 Registre uma nova receita ou despesa
               </DialogDescription>
             </DialogHeader>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4 mt-4">
               <div className="space-y-2">
                 <Label htmlFor="type">Tipo</Label>
@@ -167,7 +137,7 @@ export default function Transactions() {
                   step="0.01"
                   min="0"
                   value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
                   placeholder="0.00"
                 />
               </div>
@@ -177,10 +147,16 @@ export default function Transactions() {
                 <Input
                   id="date"
                   type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                />
-              </div>
+                  value={formData.date ? formData.date.split('T')[0] : ''}
+                  onChange={(e) => {
+                    const isoString = new Date(e.target.value + 'T00:00:00').toISOString();
+
+                    setFormData({
+                      ...formData,
+                      date: isoString,
+                    });
+                  }}
+                />              </div>
 
               <div className="flex gap-2 pt-4">
                 <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="flex-1">
@@ -237,11 +213,11 @@ export default function Transactions() {
         <CardHeader>
           <CardTitle>Histórico de Transações</CardTitle>
           <CardDescription>
-            {filteredTransactions.length} {filteredTransactions.length === 1 ? 'transação' : 'transações'}
+            {transactions?.length} {transactions?.length === 1 ? 'transação' : 'transações'}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {filteredTransactions.length === 0 ? (
+          {transactions?.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Plus className="w-12 h-12 mx-auto mb-2 text-muted-foreground/50" />
               <p>Nenhuma transação encontrada</p>
@@ -249,18 +225,17 @@ export default function Transactions() {
             </div>
           ) : (
             <div className="space-y-2">
-              {filteredTransactions.map((transaction) => (
+              {transactions?.map((transaction) => (
                 <div
                   key={transaction.id}
                   className="flex items-center justify-between p-4 bg-muted rounded-lg hover:bg-muted/70 transition-colors"
                 >
                   <div className="flex items-center gap-4 flex-1">
                     <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center hrink-0 ${
-                        transaction.type === 'income'
+                      className={`w-12 h-12 rounded-full flex items-center justify-center hrink-0 ${transaction.type === 'income'
                           ? 'bg-emerald-100 text-emerald-600'
                           : 'bg-red-100 text-red-600'
-                      }`}
+                        }`}
                     >
                       {transaction.type === 'income' ? (
                         <TrendingUp className="w-6 h-6" />
@@ -269,16 +244,15 @@ export default function Transactions() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-foreground">{transaction.description}</p>
+                      <p className="font-semibold text-foreground">{transaction.description || "Sem descrição"}</p>
                       <p className="text-sm text-muted-foreground">
                         {transaction.category} • {formatDate(transaction.date)}
                       </p>
                     </div>
                     <div className="text-right">
                       <div
-                        className={`font-bold text-lg ${
-                          transaction.type === 'income' ? 'text-emerald-600' : 'text-red-600'
-                        }`}
+                        className={`font-bold text-lg ${transaction.type === 'income' ? 'text-emerald-600' : 'text-red-600'
+                          }`}
                       >
                         {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
                       </div>
