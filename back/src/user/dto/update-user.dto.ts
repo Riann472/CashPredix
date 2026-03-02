@@ -1,18 +1,23 @@
-import { IsOptional, IsString, IsEmail, MinLength } from 'class-validator';
+import { IsOptional, IsString, IsEmail, MinLength, IsNumber, IsEnum } from 'class-validator';
 
 export class UpdateFinancialDataDto {
   @IsOptional()
+  @IsNumber()
   salary?: number;
 
   @IsOptional()
+  @IsNumber()
   extraIncome?: number;
 
   @IsOptional()
+  @IsEnum(["monthly", "weekly"])
   extraIncomeType?: "monthly" | "weekly";
 
   @IsOptional()
+  @IsNumber()
   balance?: number;
 
+  @IsNumber()
   @IsOptional()
   fixedExpenses?: number;
 }

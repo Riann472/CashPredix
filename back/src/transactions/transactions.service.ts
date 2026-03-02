@@ -19,6 +19,16 @@ export class TransactionsService {
   }
 
   async create(createTransactionDto: CreateTransactionDto) {
+    await this.prisma.financialData.update({
+      where: { userId: 1 },
+      data: {
+        balance: {
+          increment: createTransactionDto.type === 'income'
+            ? createTransactionDto.amount
+            : -createTransactionDto.amount
+        }
+      }
+    });
     return await this.prisma.transaction.create({
       data: createTransactionDto
     });

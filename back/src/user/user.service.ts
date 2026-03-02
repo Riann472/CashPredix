@@ -31,12 +31,11 @@ export class UserService {
 
   async update(id: number, updateUserDto: UpdateUserDto) {
     if (updateUserDto.financialData) {
-      const dat = await this.prisma.financialData.upsert({
+      await this.prisma.financialData.upsert({
         where: { userId: id },
         update: updateUserDto.financialData,
         create: { ...updateUserDto.financialData, userId: id }
       })
-      console.log(dat)
     } 
     const user = await this.prisma.user.update({
       where: { id },
