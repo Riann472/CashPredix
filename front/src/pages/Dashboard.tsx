@@ -1,10 +1,11 @@
 import axios from 'axios'
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { TrendingUp, TrendingDown, DollarSign, Calendar, Receipt } from 'lucide-react';
-import {  UserProfile, TransactionsSummary } from '../types/types';
+import { TrendingUp, TrendingDown, DollarSign, Calendar, Receipt, SquarePen } from 'lucide-react';
+import { UserProfile, TransactionsSummary } from '../types/types';
 import { getExpenditureAverage } from '../utils';
 import { getMonthName, formatCurrency, formatDate } from '../utils'
+import { useEffect, useState } from 'react';
 
 const userId = 1
 
@@ -12,6 +13,24 @@ export default function Dashboard() {
   const { data: transactionsData } = useQuery<TransactionsSummary>({ queryKey: ['transactionsSummary'], queryFn: () => axios.get(`${import.meta.env.VITE_API_URL}/transactions/summary/${userId}`).then(res => res.data) })
   const { data: user } = useQuery<UserProfile>({ queryKey: ['userProfile'], queryFn: () => axios.get(`${import.meta.env.VITE_API_URL}/user/${userId}`).then(res => res.data) })
   const { income, expenses, transactions } = transactionsData || { income: 0, expenses: 0, transactions: [] }
+
+  const [isEditingBalance, setIsEditingBalance] = useState(false);
+  const [editableBalance, setEditableBalance] = useState<string>(
+    String(user?.financialData?.balance ?? income - expenses)
+  );
+
+  const { mutate: updateBalance } = useMutation({ mutationKey: ['updateBalance'], mutationFn: () => axios.patch(`${import.meta.env.VITE_API_URL}/user/${userId}`, { financialData: { balance: +editableBalance } }).then(res => res.data) })
+
+  useEffect(() => {
+    if (user) {
+      setEditableBalance(String(user.financialData?.balance ?? income - expenses));
+    }
+  }, [user, income, expenses]);
+
+  const handleBalanceSave = () => {
+    setIsEditingBalance(false);
+    updateBalance()
+  };
 
   return (
     <div className="space-y-6">
@@ -64,9 +83,35 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(user?.financialData?.balance ? user.financialData.balance : income - expenses)}</div>
+            <div className="flex gap-2 items-center text-2xl font-bold">
+              {isEditingBalance ? (
+                <>
+                  <h2 className='text-2xl font-bold'>R$ </h2>
+                  <input
+                    type="number"
+                    autoFocus
+                    value={editableBalance}
+                    onChange={(e) => setEditableBalance(e.target.value)}
+                    onBlur={handleBalanceSave}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleBalanceSave();
+                      if (e.key === 'Escape') setIsEditingBalance(false);
+                    }}
+                    className="bg-transparent border-none outline-none text-2xl font-bold text-white w-32"
+                  />
+                </>
+              ) : (
+                <>
+                  {formatCurrency(+editableBalance)}
+                  <SquarePen
+                    className="w-4 h-4 mt-1 text-white/70 hover:text-white cursor-pointer"
+                    onClick={() => setIsEditingBalance(true)}
+                  />
+                </>
+              )}
+            </div>
             <p className="text-xs text-white/90 mt-1">
-              {user?.financialData?.balance ? user.financialData.balance : 0 >= 0 ? 'Saldo positivo' : 'Saldo negativo'}
+              {+editableBalance >= 0 ? 'Saldo positivo' : 'Saldo negativo'}
             </p>
           </CardContent>
         </Card>
@@ -115,9 +160,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div
-                    className={`font-semibold ${transaction.type === 'income' ? 'text-emerald-600' : 'text-red-600'
-                      }`}
-                  >
+                    className={`font-semibold ${transaction.type === 'income' ? 'text-emerald-600' : 'text-red-600'}`}>
                     {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
                   </div>
                 </div>
