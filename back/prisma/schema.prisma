@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -11,6 +5,39 @@ generator client {
 
 datasource db {
   provider = "mysql"
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  password      String
+  name          String
+  financialData FinancialData?
+  transactions  Transaction[]
+}
+
+model Transaction {
+  id          Int             @id @default(autoincrement())
+  userId      Int
+  amount      Float
+  category    String
+  date        DateTime
+  description String?
+  type        TransactionType
+  user        User            @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "Transaction_userId_fkey")
+}
+
+model FinancialData {
+  id              Int              @id @default(autoincrement())
+  userId          Int              @unique
+  salary          Float?
+  extraIncome     Float?
+  extraIncomeType ExtraIncomeType?
+  balance         Float?
+  fixedExpenses   Float?
+  user            User             @relation(fields: [userId], references: [id])
 }
 
 enum TransactionType {
@@ -21,37 +48,4 @@ enum TransactionType {
 enum ExtraIncomeType {
   monthly
   weekly
-}
-
-model User {
-  id            Int       @id @default(autoincrement())
-  email         String    @unique
-  password      String
-  name          String
-  transactions  Transaction[]
-  financialData FinancialData?
-}
-
-model Transaction {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  amount      Float
-  category    String
-  date        DateTime
-  description String?
-  type        TransactionType
-
-  user User @relation(fields: [userId], references: [id])
-}
-
-model FinancialData {
-  id             Int     @id @default(autoincrement())
-  userId         Int     @unique
-  salary          Float?
-  extraIncome     Float?
-  extraIncomeType ExtraIncomeType?
-  balance         Float?
-  fixedExpenses   Float?
-
-  user User @relation(fields: [userId], references: [id])
 }

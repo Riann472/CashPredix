@@ -33,7 +33,7 @@ export class TransactionsService {
       data: createTransactionDto
     });
   }
-
+  
   async findAll(id: number) {
     return await this.prisma.transaction.findMany({
       where: {

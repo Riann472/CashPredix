@@ -1,5 +1,5 @@
-import axios from 'axios'
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { apiConfig } from '../services/apiConfig';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Calendar, Receipt, SquarePen } from 'lucide-react';
 import { UserProfile, TransactionsSummary } from '../types/types';
@@ -10,8 +10,14 @@ import { useEffect, useState } from 'react';
 const userId = 1
 
 export default function Dashboard() {
-  const { data: transactionsData } = useQuery<TransactionsSummary>({ queryKey: ['transactionsSummary'], queryFn: () => axios.get(`${import.meta.env.VITE_API_URL}/transactions/summary/${userId}`).then(res => res.data) })
-  const { data: user } = useQuery<UserProfile>({ queryKey: ['userProfile'], queryFn: () => axios.get(`${import.meta.env.VITE_API_URL}/user/${userId}`).then(res => res.data) })
+  const { data: transactionsData } = useQuery<TransactionsSummary>({
+    queryKey: ['transactionsSummary'],
+    queryFn: () => apiConfig.get(`/transactions/summary/${userId}`).then(res => res.data),
+  });
+  const { data: user } = useQuery<UserProfile>({
+    queryKey: ['userProfile'],
+    queryFn: () => apiConfig.get(`/user/${userId}`).then(res => res.data),
+  });
   const { income, expenses, transactions } = transactionsData || { income: 0, expenses: 0, transactions: [] }
 
   const [isEditingBalance, setIsEditingBalance] = useState(false);
@@ -19,7 +25,13 @@ export default function Dashboard() {
     String(user?.financialData?.balance ?? income - expenses)
   );
 
-  const { mutate: updateBalance } = useMutation({ mutationKey: ['updateBalance'], mutationFn: () => axios.patch(`${import.meta.env.VITE_API_URL}/user/${userId}`, { financialData: { balance: +editableBalance } }).then(res => res.data) })
+  const { mutate: updateBalance } = useMutation({
+    mutationKey: ['updateBalance'],
+    mutationFn: () =>
+      apiConfig
+        .patch(`/user/${userId}`, { financialData: { balance: +editableBalance } })
+        .then(res => res.data),
+  });
 
   useEffect(() => {
     if (user) {

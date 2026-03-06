@@ -5,14 +5,20 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { User, Mail, DollarSign, Save } from 'lucide-react';
 import { UserProfile } from '../types/types';
-import axios from 'axios';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { apiConfig } from '../services/apiConfig';
 
 const userId = 1
 
 export default function Settings() {
-  const { data: user } = useQuery<UserProfile>({ queryKey: ['userProfile'], queryFn: () => axios.get(`${import.meta.env.VITE_API_URL}/user/${userId}`).then(res => res.data) })
-  const { mutate: updateUser } = useMutation<UserProfile, Error, Partial<UserProfile>>({ mutationKey: ['updateUser'], mutationFn: (data) => axios.patch(`${import.meta.env.VITE_API_URL}/user/${userId}`, data).then(res => res.data) })
+  const { data: user } = useQuery<UserProfile>({
+    queryKey: ['userProfile'],
+    queryFn: () => apiConfig.get(`/user/${userId}`).then(res => res.data),
+  });
+  const { mutate: updateUser } = useMutation<UserProfile, Error, Partial<UserProfile>>({
+    mutationKey: ['updateUser'],
+    mutationFn: (data) => apiConfig.patch(`/user/${userId}`, data).then(res => res.data),
+  });
 
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
 

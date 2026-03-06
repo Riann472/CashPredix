@@ -8,7 +8,7 @@ import { Plus, TrendingUp, TrendingDown, Trash2, Filter } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Transaction } from '../types/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { apiConfig } from '../services/apiConfig';
 import { formatCurrency, formatDate } from '../utils';
 
 const incomeCategories = [
@@ -38,8 +38,15 @@ export default function Transactions() {
   const [isOpen, setIsOpen] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
 
-  const { data: transactions } = useQuery<Transaction[]>({ queryKey: ['transactions'], queryFn: () => axios.get(`${import.meta.env.VITE_API_URL}/transactions/${userId}`).then(res => res.data) })
-  const { mutate: addTransaction } = useMutation({ mutationKey: ['addTransaction'], mutationFn: (data: Omit<Transaction, 'id'>) => axios.post(`${import.meta.env.VITE_API_URL}/transactions`, { ...data, userId }).then(res => res.data) })
+  const { data: transactions } = useQuery<Transaction[]>({
+    queryKey: ['transactions'],
+    queryFn: () => apiConfig.get(`/transactions/${userId}`).then(res => res.data),
+  });
+  const { mutate: addTransaction } = useMutation({
+    mutationKey: ['addTransaction'],
+    mutationFn: (data: Omit<Transaction, 'id'>) =>
+      apiConfig.post('/transactions', { ...data, userId }).then(res => res.data),
+  });
 
   const [formData, setFormData] = useState({
     userId,

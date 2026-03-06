@@ -3,6 +3,8 @@ import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import Settings from './pages/Settings';
+import Login from './pages/Login';
+import Register from './pages/Register';
 
 export const router = createBrowserRouter([
   {
@@ -14,4 +16,13 @@ export const router = createBrowserRouter([
       { path: 'configuracoes', Component: Settings },
     ],
   },
+  {
+    path: '/login',
+    Component: Login,
+  },
+  {
+    path: '/registro',
+    Component: Register,
+  },
 ]);
+
