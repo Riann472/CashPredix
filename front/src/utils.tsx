@@ -1,4 +1,4 @@
-import { UserProfile } from "./types/types";
+import { Transaction } from "./types/types";
 
 export function getMonthName() {
     const now = new Date();
@@ -23,20 +23,21 @@ export const formatDate = (dateString: string) => {
     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 };
 
-export function getExpenditureAverage(user: UserProfile, monthly: boolean = false): number {
-    if (!user.transactions || user.transactions.length === 0) return 0;
+export function getExpenditureAverage(transactions: Transaction[], monthly: boolean = false): number {
+    if (!transactions || transactions.length === 0) return 0;
 
-    const transactions = user.transactions;
     const expenses = transactions.filter(t => t.type === 'expense');
 
     const now = new Date();
     if (!monthly) {
-        const dayQtd = now.getDay();
+        const dayQtd = now.getDate();
         const monthExpenses = expenses.filter(e => {
             const d = new Date(e.date);
+            console.log(d.getFullYear())
             return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
         })
         console.log(monthExpenses)
+        console.log(dayQtd)
         return monthExpenses.reduce((sum, e) => sum + e.amount, 0) / dayQtd;
     }
 

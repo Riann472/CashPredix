@@ -7,24 +7,32 @@ import { User, Mail, DollarSign, Save } from 'lucide-react';
 import { UserProfile } from '../types/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiConfig } from '../services/apiConfig';
-
-const userId = 1
+import { useNavigate } from 'react-router';
+import useAuth from '../hooks/useAuth';
 
 export default function Settings() {
+  const {auth} = useAuth()
+
+  const navigate = useNavigate();
   const { data: user } = useQuery<UserProfile>({
     queryKey: ['userProfile'],
-    queryFn: () => apiConfig.get(`/user/${userId}`).then(res => res.data),
+    queryFn: () => apiConfig.get(`/user/${auth?.sub}`).then(res => res.data),
   });
   const { mutate: updateUser } = useMutation<UserProfile, Error, Partial<UserProfile>>({
     mutationKey: ['updateUser'],
-    mutationFn: (data) => apiConfig.patch(`/user/${userId}`, data).then(res => res.data),
+    mutationFn: (data) => apiConfig.patch(`/user/${auth?.sub}`, data).then(res => res.data),
   });
 
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     updateUser(formData);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
   };
 
   const formatCurrency = (value: number) => {
@@ -37,9 +45,19 @@ export default function Settings() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">Configurações</h2>
-        <p className="text-muted-foreground">Gerencie suas informações pessoais e financeiras</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Configurações</h2>
+          <p className="text-muted-foreground">Gerencie suas informações pessoais e financeiras</p>
+        </div>
+        {/* Logout Button */}
+        <Button
+          variant="destructive"
+          className="bg-red-600 hover:bg-red-700 text-white cursor-pointer"
+          onClick={handleLogout}
+        >
+          Sair
+        </Button>
       </div>
 
       {/* Profile Form */}

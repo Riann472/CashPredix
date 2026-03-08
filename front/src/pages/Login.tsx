@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -7,35 +7,32 @@ import { Button } from '../components/ui/button';
 import { Wallet, Mail, Lock, LogIn, ArrowRight } from 'lucide-react';
 import { apiConfig } from '../services/apiConfig';
 import { toast } from 'sonner';
+import { AuthResponse } from '../services/apiConfig';
+import useAuth from '../hooks/useAuth';
 
 export default function Login() {
   const navigate = useNavigate();
+  const { auth, setAuth } = useAuth()
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const response = await apiConfig.post('/auth/login', {
-        email,
-        password,
-      });
+      const response = await apiConfig.post<AuthResponse>('/auth/login', { email, password }, { withCredentials: true });
 
-      const token = response.data?.token;
-      if (token) {
-        localStorage.setItem('authToken', token);
-      }
-
+      const data = response.data;
       toast.success('Login realizado com sucesso!');
+      setAuth(data)
+      console.log(auth)
       navigate('/');
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||
-        error?.response?.data?.error ||
-        'Não foi possível fazer login. Verifique suas credenciais.';
+        'Não foi possível fazer login.';
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -47,7 +44,7 @@ export default function Login() {
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center gap-2 mb-6">
           <Wallet className="w-8 h-8 text-emerald-600" />
-          <span className="text-lg font-semibold text-foreground">Gestão Financeira</span>
+          <span className="text-lg font-semibold text-foreground">Gestão Financeira {}</span>
         </div>
 
         <Card>
@@ -102,7 +99,7 @@ export default function Login() {
             <div className="mt-6 text-sm text-muted-foreground text-center">
               <span>Não tem uma conta?</span>{' '}
               <Link
-                to="/registro"
+                to="/register"
                 className="inline-flex items-center gap-1 font-medium text-emerald-600 hover:text-emerald-700"
               >
                 Registre-se

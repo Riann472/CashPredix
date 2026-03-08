@@ -7,8 +7,11 @@ import { Button } from '../components/ui/button';
 import { Wallet, Mail, Lock, User, UserPlus, ArrowLeft } from 'lucide-react';
 import { apiConfig } from '../services/apiConfig';
 import { toast } from 'sonner';
+import { AuthResponse } from '../services/apiConfig';
+import useAuth from '../hooks/useAuth';
 
 export default function Register() {
+  const { setAuth } = useAuth()
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -16,7 +19,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
@@ -27,14 +30,11 @@ export default function Register() {
     setIsSubmitting(true);
 
     try {
-      await apiConfig.post('/auth/register', {
-        name,
-        email,
-        password,
-      });
+      const response = await apiConfig.post<AuthResponse>('/auth/register', { name, email, password }, { withCredentials: true });
 
       toast.success('Cadastro realizado com sucesso! Faça login para continuar.');
-      navigate('/login');
+      setAuth(response.data)
+      navigate('/');
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||

@@ -19,21 +19,28 @@ export class TransactionsService {
   }
 
   async create(createTransactionDto: CreateTransactionDto) {
-    await this.prisma.financialData.update({
-      where: { userId: 1 },
-      data: {
-        balance: {
-          increment: createTransactionDto.type === 'income'
-            ? createTransactionDto.amount
-            : -createTransactionDto.amount
-        }
-      }
+    const financialData = await this.prisma.financialData.findUnique({
+      where: { userId: createTransactionDto.userId }
     });
+
+    if (financialData) {
+      await this.prisma.financialData.update({
+        where: { userId: 1 },
+        data: {
+          balance: {
+            increment: createTransactionDto.type === 'income'
+              ? createTransactionDto.amount
+              : -createTransactionDto.amount
+          }
+        }
+      });
+    }
+
     return await this.prisma.transaction.create({
       data: createTransactionDto
     });
   }
-  
+
   async findAll(id: number) {
     return await this.prisma.transaction.findMany({
       where: {

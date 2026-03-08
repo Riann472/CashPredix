@@ -46,9 +46,9 @@ export default function Layout() {
             </Link>
 
             <Link
-              to="/transacoes"
+              to="/transactions"
               className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors ${
-                isActive('/transacoes')
+                isActive('/transactions')
                   ? 'text-emerald-600 bg-emerald-100/60 dark:bg-emerald-500/15'
                   : 'text-muted-foreground hover:text-emerald-600 hover:bg-muted/60'
               }`}
@@ -58,9 +58,9 @@ export default function Layout() {
             </Link>
 
             <Link
-              to="/configuracoes"
+              to="/settings"
               className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors ${
-                isActive('/configuracoes')
+                isActive('/settings')
                   ? 'text-emerald-600 bg-emerald-100/60 dark:bg-emerald-500/15'
                   : 'text-muted-foreground hover:text-emerald-600 hover:bg-muted/60'
               }`}

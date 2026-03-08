@@ -2,42 +2,41 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiConfig } from '../services/apiConfig';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Calendar, Receipt, SquarePen } from 'lucide-react';
-import { UserProfile, TransactionsSummary } from '../types/types';
+import { TransactionsSummary } from '../types/types';
 import { getExpenditureAverage } from '../utils';
 import { getMonthName, formatCurrency, formatDate } from '../utils'
 import { useEffect, useState } from 'react';
-
-const userId = 1
+import useAuth from '../hooks/useAuth';
 
 export default function Dashboard() {
+  const { auth } = useAuth()
+
+  const { data: financialData } = useQuery({
+    queryKey: ['financialData', auth?.sub],
+    queryFn: () => apiConfig.get(`/user/${auth?.sub}`).then(res => res.data.financialData),
+  })
+
   const { data: transactionsData } = useQuery<TransactionsSummary>({
     queryKey: ['transactionsSummary'],
-    queryFn: () => apiConfig.get(`/transactions/summary/${userId}`).then(res => res.data),
+    queryFn: () => apiConfig.get(`/transactions/summary/${auth?.sub}`).then(res => res.data),
   });
-  const { data: user } = useQuery<UserProfile>({
-    queryKey: ['userProfile'],
-    queryFn: () => apiConfig.get(`/user/${userId}`).then(res => res.data),
-  });
+
   const { income, expenses, transactions } = transactionsData || { income: 0, expenses: 0, transactions: [] }
 
   const [isEditingBalance, setIsEditingBalance] = useState(false);
-  const [editableBalance, setEditableBalance] = useState<string>(
-    String(user?.financialData?.balance ?? income - expenses)
-  );
+  const [editableBalance, setEditableBalance] = useState<string>("0");
 
   const { mutate: updateBalance } = useMutation({
     mutationKey: ['updateBalance'],
     mutationFn: () =>
       apiConfig
-        .patch(`/user/${userId}`, { financialData: { balance: +editableBalance } })
+        .patch(`/user/${auth?.sub}`, { financialData: { balance: +editableBalance } })
         .then(res => res.data),
   });
 
   useEffect(() => {
-    if (user) {
-      setEditableBalance(String(user.financialData?.balance ?? income - expenses));
-    }
-  }, [user, income, expenses]);
+    setEditableBalance(String(financialData?.balance ?? (income ?? 0) - (expenses ?? 0)));
+  }, [financialData, income, expenses]);
 
   const handleBalanceSave = () => {
     setIsEditingBalance(false);
@@ -48,7 +47,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Welcome Section */}
       <div>
-        <h2 className="text-2xl font-bold text-foreground">Olá, {user?.name}!</h2>
+        <h2 className="text-2xl font-bold text-foreground">Olá, {auth?.name}!</h2>
         <p className="text-muted-foreground flex items-center gap-2 mt-1">
           <Calendar className="w-4 h-4" />
           {getMonthName()}
@@ -67,7 +66,7 @@ export default function Dashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(income)}</div>
             <p className="text-xs text-emerald-50 mt-1">
-              Salário: {user?.financialData?.salary ? formatCurrency(user.financialData.salary) : "Não informado"}
+              Salário: {financialData?.salary ? formatCurrency(financialData.salary) : "Não informado"}
             </p>
           </CardContent>
         </Card>
@@ -183,14 +182,14 @@ export default function Dashboard() {
       </Card>
 
       {/* Summary Stats */}
-      {user?.transactions && user.transactions.length > 0 && (
+      {auth && transactions && transactions.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card>
             <CardHeader className="pb-3">
               <CardDescription>Total de Transações</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">{user.transactions.length}</div>
+              <div className="text-2xl font-bold text-foreground">{transactions.length}</div>
             </CardContent>
           </Card>
 
@@ -200,7 +199,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-emerald-600">
-                {user.transactions.filter((t) => t.type === 'income').length}
+                {transactions.filter((t) => t.type === 'income').length}
               </div>
             </CardContent>
           </Card>
@@ -211,7 +210,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-600">
-                {user.transactions.filter((t) => t.type === 'expense').length}
+                {transactions.filter((t) => t.type === 'expense').length}
               </div>
             </CardContent>
           </Card>
@@ -222,7 +221,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">
-                {formatCurrency(getExpenditureAverage(user, false))}
+                {formatCurrency(getExpenditureAverage(transactions, false))}
               </div>
             </CardContent>
           </Card>
@@ -232,7 +231,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">
-                {formatCurrency(getExpenditureAverage(user, true))}
+                {formatCurrency(getExpenditureAverage(transactions, true))}
               </div>
             </CardContent>
           </Card>

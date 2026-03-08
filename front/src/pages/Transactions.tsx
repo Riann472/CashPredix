@@ -57,7 +57,7 @@ export default function Transactions() {
     date: new Date().toISOString(),
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     addTransaction(formData);
   };

@@ -18,10 +18,9 @@ export interface FinancialData {
 }
 
 export interface UserProfile {
-  id: number;
+  sub: number;
   name: string;
   email: string;
-  transactions?: Transaction[];
   financialData?: FinancialData;
   createdAt?: string;
 }

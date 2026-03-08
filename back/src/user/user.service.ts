@@ -4,7 +4,11 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
+
+  create(data: { email: string; password: string; name: string }) {
+    return this.prisma.user.create({ data });
+  }
 
   findAll() {
     return this.prisma.user.findMany({
@@ -42,7 +46,7 @@ export class UserService {
         update: updateUserDto.financialData,
         create: { ...updateUserDto.financialData, userId: id }
       })
-    } 
+    }
     const user = await this.prisma.user.update({
       where: { id },
       data: {
