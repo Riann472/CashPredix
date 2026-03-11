@@ -10,7 +10,7 @@ import { apiConfig } from '../services/apiConfig';
 import { useNavigate } from 'react-router';
 import useAuth from '../hooks/useAuth';
 
-export default function Settings() {
+export default function UserSettings() {
   const {auth} = useAuth()
 
   const navigate = useNavigate();

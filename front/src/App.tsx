@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Layout from './components/Layout';
-import Settings from './pages/Settings';
+import UserSettings from './pages/UserSettings';
 import Register from './pages/Register';
 import Transactions from './pages/Transactions';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -24,7 +24,7 @@ export default function App() {
               <Route path="/register" element={<Register />} />
               <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/settings" element={<Settings />} />
+                <Route path="/settings/user" element={<UserSettings />} />
                 <Route path="/transactions" element={<Transactions />} />
               </Route>
             </Route>
