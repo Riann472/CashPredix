@@ -33,11 +33,8 @@ export function getExpenditureAverage(transactions: Transaction[], monthly: bool
         const dayQtd = now.getDate();
         const monthExpenses = expenses.filter(e => {
             const d = new Date(e.date);
-            console.log(d.getFullYear())
             return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
         })
-        console.log(monthExpenses)
-        console.log(dayQtd)
         return monthExpenses.reduce((sum, e) => sum + e.amount, 0) / dayQtd;
     }
 

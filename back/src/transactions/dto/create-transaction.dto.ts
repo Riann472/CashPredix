@@ -2,9 +2,6 @@ import { IsInt, IsNumber, IsString, IsOptional, IsEnum, IsDateString } from 'cla
 import { TransactionType } from '@prismagen';
 
 export class CreateTransactionDto {
-  @IsInt()
-  userId: number;
-
   @IsNumber()
   amount: number;
 

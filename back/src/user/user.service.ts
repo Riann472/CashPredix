@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -10,7 +10,13 @@ export class UserService {
     return this.prisma.user.create({ data });
   }
 
-  findAll() {
+  findAll(userId: number) {
+    const user = this.prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    // if(user.role !== 'admin') throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+
     return this.prisma.user.findMany({
       select: {
         id: true,
@@ -21,8 +27,11 @@ export class UserService {
     });
   }
 
-  findOne(id: number) {
-    return this.prisma.user.findUnique({
+  findOne(userId: number, id: number) {
+    console.log(userId, id)
+    if (userId !== id) throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+
+    return this.prisma.user.findFirst({
       where: { id },
       select: {
         id: true,
@@ -39,7 +48,11 @@ export class UserService {
     });
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
+  async update(userId: number, id: number, updateUserDto: UpdateUserDto) {
+    // const requestUser = await this.prisma.user.findUnique({
+    //   where: { id: userId },
+    // });
+    // if(requestUser.id !== id && requestUser.role !== 'admin') throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     if (updateUserDto.financialData) {
       await this.prisma.financialData.upsert({
         where: { userId: id },

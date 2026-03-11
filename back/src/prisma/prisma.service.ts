@@ -11,7 +11,7 @@ export class PrismaService extends PrismaClient {
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
-        cachingRsaPublicKey: "../../public_key.pem"
+        cachingRsaPublicKey: "/home/riann/projects/controle-financeiro/back/public_key.pem"
     });
 
     super({ adapter });

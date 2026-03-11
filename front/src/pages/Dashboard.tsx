@@ -13,12 +13,12 @@ export default function Dashboard() {
 
   const { data: financialData } = useQuery({
     queryKey: ['financialData', auth?.sub],
-    queryFn: () => apiConfig.get(`/user/${auth?.sub}`).then(res => res.data.financialData),
+    queryFn: () => apiConfig.get(`/user`).then(res => res.data.financialData),
   })
 
   const { data: transactionsData } = useQuery<TransactionsSummary>({
     queryKey: ['transactionsSummary'],
-    queryFn: () => apiConfig.get(`/transactions/summary/${auth?.sub}`).then(res => res.data),
+    queryFn: () => apiConfig.get(`/transactions/summary`).then(res => res.data),
   });
 
   const { income, expenses, transactions } = transactionsData || { income: 0, expenses: 0, transactions: [] }
@@ -30,7 +30,7 @@ export default function Dashboard() {
     mutationKey: ['updateBalance'],
     mutationFn: () =>
       apiConfig
-        .patch(`/user/${auth?.sub}`, { financialData: { balance: +editableBalance } })
+        .patch(`/user`, { financialData: { balance: +editableBalance } })
         .then(res => res.data),
   });
 

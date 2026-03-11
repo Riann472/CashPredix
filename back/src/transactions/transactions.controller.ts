@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -8,23 +8,25 @@ export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
   @Post()
-  create(@Body() createTransactionDto: CreateTransactionDto) {
-    return this.transactionsService.create(createTransactionDto);
+  create(@Body() createTransactionDto: CreateTransactionDto, @Req() req) {
+    console.log(req.user)
+    return this.transactionsService.create(req.user.id, createTransactionDto);
+  }
+
+  @Get()
+  findAll(@Req() req) {
+    console.log(req.user.id) 
+    return this.transactionsService.findAll(req.user.sub);
+  }
+
+  @Get('summary')
+  findAllSummary(@Req() req) {
+    return this.transactionsService.findAllSummary(req.user.sub);
   }
 
   @Get(':id')
-  findAll(@Param('id') id: string) {
-    return this.transactionsService.findAll(+id);
-  }
-
-  @Get('summary/:id')
-  findAllSummary(@Param('id') id: string) {
-    return this.transactionsService.findAllSummary(+id);
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.transactionsService.findOne(+id);
+  findOne(@Param('id') id: string, @Req() req) {
+    return this.transactionsService.findOne(req.user.sub, +id);
   }
 
   @Patch(':id')

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -18,14 +18,15 @@ export class TransactionsService {
     return sum
   }
 
-  async create(createTransactionDto: CreateTransactionDto) {
+  async create(userId: number, createTransactionDto: CreateTransactionDto) {
+    if (!userId) { throw new HttpException("User ID is required to create a transaction.", 400); }
     const financialData = await this.prisma.financialData.findUnique({
-      where: { userId: createTransactionDto.userId }
+      where: { userId }
     });
 
     if (financialData) {
       await this.prisma.financialData.update({
-        where: { userId: 1 },
+        where: { userId },
         data: {
           balance: {
             increment: createTransactionDto.type === 'income'
@@ -37,23 +38,19 @@ export class TransactionsService {
     }
 
     return await this.prisma.transaction.create({
-      data: createTransactionDto
+      data: { ...createTransactionDto, userId }
     });
   }
 
-  async findAll(id: number) {
+  async findAll(userId: number) {
     return await this.prisma.transaction.findMany({
-      where: {
-        userId: id
-      }
+      where: { userId: undefined }
     });
   }
 
-  async findAllSummary(id: number) {
+  async findAllSummary(userId: number) {
     const transactions = await this.prisma.transaction.findMany({
-      where: {
-        userId: id
-      }
+      where: { userId }
     });
     const expenses = this.getTransactionData(transactions, "expense")
     const income = this.getTransactionData(transactions, "income")
@@ -63,7 +60,7 @@ export class TransactionsService {
 
   }
 
-  async findOne(id: number) {
+  async findOne(userId: number,id: number) {
     return `This action returns a #${id} transaction`;
   }
 

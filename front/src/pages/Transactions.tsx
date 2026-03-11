@@ -38,9 +38,9 @@ export default function Transactions() {
   const [isOpen, setIsOpen] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
 
-  const { data: transactions } = useQuery<Transaction[]>({
+  const { data: transactions = []} = useQuery<Transaction[]>({
     queryKey: ['transactions'],
-    queryFn: () => apiConfig.get(`/transactions/${userId}`).then(res => res.data),
+    queryFn: () => apiConfig.get(`/transactions`).then(res => res.data),
   });
   const { mutate: addTransaction } = useMutation({
     mutationKey: ['addTransaction'],

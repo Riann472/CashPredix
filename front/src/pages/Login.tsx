@@ -12,7 +12,7 @@ import useAuth from '../hooks/useAuth';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { auth, setAuth } = useAuth()
+  const { setAuth } = useAuth()
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,7 +27,6 @@ export default function Login() {
       const data = response.data;
       toast.success('Login realizado com sucesso!');
       setAuth(data)
-      console.log(auth)
       navigate('/');
     } catch (error: any) {
       const message =

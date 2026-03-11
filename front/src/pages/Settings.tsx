@@ -110,7 +110,6 @@ export default function Settings() {
                 defaultValue={user?.financialData?.salary}
                 onChange={(e) => {
                   setFormData({ ...formData, financialData: { ...formData.financialData, salary: parseFloat(e.target.value) || 0 } })
-                  console.log(formData)
                 }}
                 placeholder="0.00"
               />
