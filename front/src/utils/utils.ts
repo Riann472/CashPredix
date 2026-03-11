@@ -1,4 +1,4 @@
-import { Transaction } from "./types/types";
+import { Transaction } from "../types/types";
 
 export function getMonthName() {
     const now = new Date();

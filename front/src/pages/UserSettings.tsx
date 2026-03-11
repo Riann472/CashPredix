@@ -7,8 +7,9 @@ import { User, Mail, DollarSign, Save } from 'lucide-react';
 import { UserProfile } from '../types/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiConfig } from '../services/apiConfig';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import useAuth from '../hooks/useAuth';
+import { ArrowLeft } from 'lucide-react';
 
 export default function UserSettings() {
   const {auth} = useAuth()
@@ -35,22 +36,21 @@ export default function UserSettings() {
     navigate('/login');
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Configurações</h2>
-          <p className="text-muted-foreground">Gerencie suas informações pessoais e financeiras</p>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild>
+            <Link to="/settings" aria-label="Voltar">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Configurações do usuário</h2>
+            <p className="text-muted-foreground">Gerencie suas informações pessoais e financeiras</p>
+          </div>
         </div>
-        {/* Logout Button */}
         <Button
           variant="destructive"
           className="bg-red-600 hover:bg-red-700 text-white cursor-pointer"
@@ -123,51 +123,6 @@ export default function UserSettings() {
               Salvar Alterações
             </Button>
           </form>
-        </CardContent>
-      </Card>
-
-      {/* Current Info Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Resumo das Informações</CardTitle>
-          <CardDescription>Seus dados atuais</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                <User className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Nome</p>
-                <p className="font-medium text-foreground">{user?.name}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-                <Mail className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">E-mail</p>
-                <p className="font-medium text-foreground">{user?.email}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
-                <DollarSign className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Salário Mensal</p>
-                <p className="font-medium text-foreground">{user?.financialData?.salary ? formatCurrency(user.financialData.salary) : "Não informado"}</p>
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
 

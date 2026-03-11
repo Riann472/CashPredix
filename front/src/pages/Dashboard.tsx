@@ -3,8 +3,8 @@ import { apiConfig } from '../services/apiConfig';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Calendar, Receipt, SquarePen } from 'lucide-react';
 import { TransactionsSummary } from '../types/types';
-import { getExpenditureAverage } from '../utils';
-import { getMonthName, formatCurrency, formatDate } from '../utils'
+import { getExpenditureAverage } from '../utils/utils';
+import { getMonthName, formatCurrency, formatDate } from '../utils/utils'
 import { useEffect, useState } from 'react';
 import useAuth from '../hooks/useAuth';
 

@@ -9,13 +9,11 @@ export class TransactionsController {
 
   @Post()
   create(@Body() createTransactionDto: CreateTransactionDto, @Req() req) {
-    console.log(req.user)
-    return this.transactionsService.create(req.user.id, createTransactionDto);
+    return this.transactionsService.create(req.user.sub, createTransactionDto);
   }
 
   @Get()
   findAll(@Req() req) {
-    console.log(req.user.id) 
     return this.transactionsService.findAll(req.user.sub);
   }
 
@@ -35,7 +33,7 @@ export class TransactionsController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.transactionsService.remove(+id);
+  remove(@Param('id') id: string, @Req() req) {
+    return this.transactionsService.remove(req.user.sub, +id);
   }
 }
